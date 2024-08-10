@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import ollama
-from tools.weather_tools import WeatherToolsManager
-from auxiliary.custom_logger import CustomLogger
+from tools.weather_tools import *
+from auxiliary.custom_logger import *
 
 ### Constants ###
 MODEL = "llama3.1"
-PROMPT = "What is the weather in Tel Aviv?"
+PROMPT = "What is the weather in Paris?"
 OPTIONS = {
     # defined in https://github.com/ollama/ollama/blob/main/docs/modelfile.md
     'num_ctx': 2048,        # default is 2048
