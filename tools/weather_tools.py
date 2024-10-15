@@ -41,7 +41,7 @@ class WeatherToolsManager:
             })
 
         return json.dumps(tools_to_json)
-    
+
     def handle_tool_as_json(self, tool_name, tool_arguments):
         # TODO. Convert to dictionary search
         if tool_name == "CityToLatLongTool":
@@ -61,7 +61,7 @@ class WeatherToolsManager:
 
             response_weather = requests.get(url=url, timeout=1)
             data = response_weather.json()
-            
+
             if data:
                 # print(json.dumps(data))
                 temperature = data["current"]["temperature_2m"]
@@ -89,7 +89,7 @@ class WeatherToolsManager:
             print("Error: " + str(e))
         return city_position
 
-if __name__ == "__main__":
+def main():
     weatherToolsManager = WeatherToolsManager()
     print(weatherToolsManager.get_all_tools())
 
@@ -100,3 +100,6 @@ if __name__ == "__main__":
     # # print(json.dumps(city_temp))
     # temp = city_temp["temperature"]
     # print(f"Current temperature in {city} is {temp} degrees celsius.")
+
+if __name__ == "__main__":
+    main()

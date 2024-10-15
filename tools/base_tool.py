@@ -60,14 +60,14 @@ class ToolParameters:
             "properties": properties,
             "required": required
         }
-        return params 
+        return params
 
 
 class Tool:
     def __init__(self, name: str, description: str, parameters: ToolParameters) -> None:
         self.name = name
         self.description = description
-        self.parameters = parameters 
+        self.parameters = parameters
 
     def to_json(self) -> str:
         tool_dict = {
