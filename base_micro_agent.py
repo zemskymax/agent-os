@@ -1,14 +1,13 @@
-import ollama
+#!/usr/bin/env python3
 from auxiliary.custom_logger import *
 
 
 class BaseMicroAgent:
-    def __init__(self, model, options):
+    def __init__(self):
         self.history = ""
-        self.model = model
-        self.model_options = options
         self.messages = []
         self.tools_manager = None
+        self.model = None
         self.logger = CustomLogger()
 
     def _handle_user(self, user_input):
@@ -27,7 +26,7 @@ class BaseMicroAgent:
         self.logger.print_log("\nFull conversation history.\n" + str(self.messages), DEBUG)
         tools = self.tools_manager.get_all_tools()
         # print("tools: " + str(tools))
-        response = ollama.chat(self.model, messages=self.messages, stream=False, tools=tools, keep_alive="1h")
+        response = self.model.generate_response(messages=self.messages, tools=tools)
         # print("response: " + str(response))
 
         if response["message"]:
