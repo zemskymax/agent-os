@@ -3,7 +3,8 @@ import ollama
 
 
 ### Constants ###
-MODEL = "llama3.1"
+# MODEL = "llama3.1"
+MODEL = "qwen2.5:14b"
 OPTIONS = {
     # defined in https://github.com/ollama/ollama/blob/main/docs/modelfile.md
     'num_ctx': 2048,        # default is 2048
@@ -23,5 +24,10 @@ class OllamaWrapper:
 
     def generate_response(self, messages, tools):
         if messages and tools:
-            return ollama.chat(model=self.model, options=self.model_options, stream=False, keep_alive="1h", messages=messages, tools=tools)
+            output = ollama.chat(model=self.model, options=self.model_options, stream=False, keep_alive="1h", messages=messages, tools=tools)
+            
+            if "message" in output:
+                response = output["message"]
+                return response
+        # TODO. Add an error - messages or tools are missing?
         return ""

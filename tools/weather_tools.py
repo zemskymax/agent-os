@@ -2,12 +2,15 @@
 from tools.base_tool import *
 import requests
 import json
+from tools.base_tools_manager import BaseToolsManager
 
 
-class WeatherToolsManager:
+class WeatherToolsManager(BaseToolsManager):
     def __init__(self) -> None:
+        BaseToolsManager.__init__(self)
         city_parameter = ToolParameter(name="city", description="The city to get the latitude and longitude for.", type="string", required=True)
-        city_to_lat_long_parameters = ToolParameters(parameters=[city_parameter])
+        country_parameter = ToolParameter(name="country", description="The country to get the latitude and longitude for.", type="string", required=True)
+        city_to_lat_long_parameters = ToolParameters(parameters=[city_parameter, country_parameter])
         city_to_lat_long_tool = Tool(name="CityToLatLongTool", description="Get the latitude and longitude for a given city.", parameters=city_to_lat_long_parameters)
 
         latitude_parameter = ToolParameter(name="latitude", description="The latitude of the location.", type="number", required=True)
@@ -17,18 +20,6 @@ class WeatherToolsManager:
 
         self.tools = ToolsArray(tools=[city_to_lat_long_tool, weather_from_lat_long_tool])
         # print(self.tools.to_json())
-
-    def get_all_tools(self):
-        tools_to_json = []
-
-        tools = self.tools.to_dict()
-        for tool in tools:
-            tools_to_json.append({
-                'type': 'function',
-                'function': tool
-            })
-
-        return tools_to_json
 
     def get_all_tools_as_json(self):
         tools_to_json = []
@@ -44,14 +35,15 @@ class WeatherToolsManager:
 
     def handle_tool_as_json(self, tool_name, tool_arguments):
         # TODO. Convert to dictionary search
+        tool_response = {}
         if tool_name == "CityToLatLongTool":
-            tool_result = self._city_to_lat_long(city=tool_arguments["city"])
-            return json.dumps(tool_result)
+            tool_result = self._city_to_lat_long(city=tool_arguments["city"], country=tool_arguments["country"])
+            tool_response = {"name": tool_name, "result": tool_result}
         elif tool_name == "WeatherFromLatLongTool":
             tool_result = self._weather_from_lat_long(latitude=tool_arguments["latitude"], longitude=tool_arguments["longitude"])
-            return json.dumps(tool_result)
-        else:
-            return json.dumps({})
+            tool_response = {"name": tool_name, "result": tool_result}
+        
+        return json.dumps(tool_response)
 
     def _weather_from_lat_long(self, latitude: str, longitude: str):
         position_temperature = {}
@@ -70,15 +62,16 @@ class WeatherToolsManager:
             print("Error: " + str(e))
         return position_temperature
 
-    def _city_to_lat_long(self, city: str):
+    def _city_to_lat_long(self, city: str, country: str):
+        # TODO. allow accepting country as well
         city_position = {}
         try:
-            url = f"https://nominatim.openstreetmap.org/search?city={city}&format=json&addressdetails=1&limit=1"
+            url = f"https://nominatim.openstreetmap.org/search?city={city}&country={country}&format=json&addressdetails=1&limit=1"
             # print(url)
 
             response_city = requests.get(url=url, timeout=1)
             data = response_city.json()
-
+            # print(data)
             if data:
                 # Extract the latitude and longitude from the first result
                 lat = float(data[0]["lat"])

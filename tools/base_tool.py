@@ -29,7 +29,7 @@ class ToolParameter:
 
 
 class ToolParameters:
-    def __init__(self, parameters: List[ToolParameter]) -> None:
+    def __init__(self, parameters: List[ToolParameter]=[]) -> None:
         self.parameters = parameters
 
     def to_json(self) -> str:
