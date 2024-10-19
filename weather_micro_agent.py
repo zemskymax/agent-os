@@ -17,6 +17,7 @@ class WeatherMicroAgent(BaseMicroAgent):
 def main():
     prompt = "What is the current date and weather in Athens?"
     system = "You are a helpful assistant that gives weather updates."
+
     weather_agent = WeatherMicroAgent(system)
     print(weather_agent.handle_input(prompt))
 
