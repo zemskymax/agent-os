@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import json
+import time
 from typing import List
-from github import Github, Auth, GithubException
+from github import Github, Auth, GithubException, UnknownObjectException
 from auxiliary.env_variable_handler import EnvironmentVariableHandler
 from tools.base_tool import *
 from tools.base_tools_manager import BaseToolsManager
@@ -23,14 +24,14 @@ class GithubToolsManager(BaseToolsManager):
         github_create_new_branch_tool_parameters = ToolParameters(parameters=[github_repo_full_name_parameter, github_branch_name_parameter])
         github_create_new_branch_tool = Tool(name="GithubCreateNewBranchTool", description="Create new branch in a given github repository.", parameters=github_create_new_branch_tool_parameters)
 
-        github_repo_full_name_parameter = ToolParameter(name="github", description="The github repository name that contains the file.", type="string", required=True)
-        github_branch_name_parameter = ToolParameter(name="branch_name", description="The branch where the file should get updated.", type="string", required=True)
-        github_file_name_parameter = ToolParameter(name="file_name", description="The name of the file that need to be update.", type="string", required=True)
-        github_content_parameter = ToolParameter(name="file_content", description="The new content of the file that should replace the existing one.", type="string", required=True)
+        github_repo_full_name_parameter = ToolParameter(name="github", description="The github repository name.", type="string", required=True)
+        github_branch_name_parameter = ToolParameter(name="branch_name", description="The branch name where the file should get updated. Will create a new branch or skip if exists.", type="string", required=True)
+        github_file_name_parameter = ToolParameter(name="file_name", description="The name of the existing file that need to be update.", type="string", required=True)
+        github_content_parameter = ToolParameter(name="file_content", description="New content to replace the existing one of the file. Must provide the content in the correct JSON format (Escape single and double quotes)!", type="string", required=True)
         github_update_file_tool_parameters = ToolParameters(parameters=[github_repo_full_name_parameter, github_branch_name_parameter, github_file_name_parameter, github_content_parameter])
-        github_update_file_tool = Tool(name="GithubUpdateFileContentTool", description="Update a file in an existing branch for a given github repository.", parameters=github_update_file_tool_parameters)
+        github_update_file_tool = Tool(name="GithubUpdateFileContentTool", description="Update a file in a branch for a given github repository.", parameters=github_update_file_tool_parameters)
 
-        self.tools = ToolsArray(tools=[github_repo_name_to_content_tool, github_create_new_branch_tool, github_update_file_tool])
+        self.tools = ToolsArray(tools=[github_repo_name_to_content_tool, github_update_file_tool])
         # print(self.tools.to_json())
 
         # TODO. move to the Github engine manager class
@@ -86,34 +87,56 @@ class GithubToolsManager(BaseToolsManager):
         return files
 
     def _get_file_content(self, github_repo, file_path):
-        # TODO. set branch
+        # TODO. set active branch
         contents = github_repo.get_contents(file_path)
-        return contents.decoded_content.decode()
+        text = contents.decoded_content.decode()
+        return text
 
     def _get_default_branch(self, github_repo, default_branch="master"):
         return github_repo.get_branch(default_branch)
 
-    def _create_new_branch(self, repo_full_name, new_branch="temp1"):
+    def _check_branch_exists(self, github_repo, branch) -> bool:
+        # curr_branch = github_repo.get_branch(branch="branch")
+        # print(curr_branch)
+        for br in github_repo.get_branches():
+            if branch == br.name:
+                return True
+        return False
+
+    def _create_new_branch(self, repo_full_name, branch="temp1"):
+        print(f"Create new {branch} branch.")
+
         github_repo = self._get_github_repo(repo_full_name)
 
         default_branch = self._get_default_branch(github_repo)
-        print(f"Default branch: \n{default_branch.name} \nNew branch: \n{new_branch}")
+        print(f"Default branch: \n{default_branch.name} \nNew branch: \n{branch}")
 
         status = "success"
         try:
-            github_repo.create_git_ref(ref='refs/heads/' + new_branch, sha=default_branch.commit.sha)
+            github_repo.create_git_ref(ref='refs/heads/' + branch, sha=default_branch.commit.sha)
+            time.sleep(2.5)
         except GithubException as ex:
             print(f"Error: {ex}")
             # print(ex.data['errors'][0]['code']) # error
             status = f"Error code: {ex.status}, error message: {ex.data['message']}"
 
-        return {"repo_name": github_repo.name, "branch_name": new_branch, "status": status}
+        return {"repo_name": github_repo.name, "branch_name": branch, "status": status}
 
     def _update_file(self, repo_full_name, branch, file_name, file_content="temp1"):
+        print(f"Repo: \n{repo_full_name}")
         github_repo = self._get_github_repo(repo_full_name)
 
-        print(f"Branch: \n{branch}. \nFile name: \n{file_name}. \nFile content: \n{file_content}")
-        file = github_repo.get_contents(file_name, ref=branch)
+        print(f"Branch: \n{branch} \nFile name: \n{file_name} \nFile content: \n{file_content}")
+
+        if not self._check_branch_exists(github_repo, branch):
+            self._create_new_branch(repo_full_name, branch)
+
+        try:
+            file = github_repo.get_contents(file_name, ref=branch)
+        except UnknownObjectException as exp:
+            print(f"Create new {file_name} file.")
+            file = github_repo.create_file(file_name, f"Auto create {file_name} file.", "", branch=branch)
+
         print(f"File: \n {file.path}")
         github_repo.update_file(file.path, "Test1", file_content, file.sha, branch=branch)
         # API: update_file(path, message, content, sha, branch=NotSet, committer=NotSet, author=NotSet)
@@ -126,15 +149,14 @@ class GithubToolsManager(BaseToolsManager):
         if tool_name == "GithubRepoNameToContentTool":
             tool_result = self._get_github_repo_content(repo_full_name=tool_arguments["github"])
             tool_response = {"name": tool_name, "result": tool_result}
-            return json.dumps(tool_result)
         elif tool_name == "GithubCreateNewBranchTool":
             # TODO. Test with empty branch name
             if "branch_name" in tool_arguments:
                 new_branch_name = tool_arguments["branch_name"]
-            tool_result = self._create_new_branch(repo_full_name=tool_arguments["github"], new_branch=new_branch_name)
+            tool_result = self._create_new_branch(repo_full_name=tool_arguments["github"], branch=new_branch_name)
             tool_response = {"name": tool_name, "result": tool_result}
         elif tool_name == "GithubUpdateFileContentTool":
-            tool_result = self._update_file(repo_full_name=tool_arguments["github"], branch=tool_arguments["branch_name"], 
+            tool_result = self._update_file(repo_full_name=tool_arguments["github"], branch=tool_arguments["branch_name"],
                                             file_name=tool_arguments["file_name"], file_content=tool_arguments["file_content"])
             tool_response = {"name": tool_name, "result": tool_result}
 

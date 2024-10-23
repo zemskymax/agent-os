@@ -21,18 +21,6 @@ class WeatherToolsManager(BaseToolsManager):
         self.tools = ToolsArray(tools=[city_to_lat_long_tool, weather_from_lat_long_tool])
         # print(self.tools.to_json())
 
-    def get_all_tools_as_json(self):
-        tools_to_json = []
-
-        tools = self.tools.to_dict()
-        for tool in tools:
-            tools_to_json.append({
-                'type': 'function',
-                'function': tool
-            })
-
-        return json.dumps(tools_to_json)
-
     def handle_tool_as_json(self, tool_name, tool_arguments):
         # TODO. Convert to dictionary search
         tool_response = {}
@@ -42,7 +30,7 @@ class WeatherToolsManager(BaseToolsManager):
         elif tool_name == "WeatherFromLatLongTool":
             tool_result = self._weather_from_lat_long(latitude=tool_arguments["latitude"], longitude=tool_arguments["longitude"])
             tool_response = {"name": tool_name, "result": tool_result}
-        
+
         return json.dumps(tool_response)
 
     def _weather_from_lat_long(self, latitude: str, longitude: str):

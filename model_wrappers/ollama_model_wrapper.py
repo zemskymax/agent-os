@@ -7,7 +7,7 @@ import ollama
 MODEL = "qwen2.5:14b"
 OPTIONS = {
     # defined in https://github.com/ollama/ollama/blob/main/docs/modelfile.md
-    'num_ctx': 2048,        # default is 2048
+    'num_ctx': 16384,       # default is 2048
     'num_predict': 1024,    # default is 128
     'temperature': 0.2,     # default is 0.8
     'top_k': 5,             # default is 40
@@ -24,8 +24,9 @@ class OllamaWrapper:
 
     def generate_response(self, messages, tools):
         if messages and tools:
-            output = ollama.chat(model=self.model, options=self.model_options, stream=False, keep_alive="1h", messages=messages, tools=tools)
-            
+            output = ollama.chat(model=self.model, options=self.model_options, stream=False, messages=messages, tools=tools)
+            # print(output)
+
             if "message" in output:
                 response = output["message"]
                 return response

@@ -2,10 +2,12 @@
 # import logging # no need for now
 
 CRITICAL = 50
+TOOLS_ERROR = 41
 ERROR = 40
 WARNING = 30
-TOOLS_INFO = 22
-USER_INPUT_INFO = 21
+TOOLS_INFO = 23
+USER_INPUT_INFO = 22
+SYSTEM_INPUT_INFO = 21
 INFO = 20
 DEBUG = 10
 NOTSET = 0
@@ -18,10 +20,12 @@ class CustomLogger:
         color_levels = {
             10: "\033[36m{}\033[0m",        # DEBUG
             20: "\033[32m{}\033[0m",        # INFO
-            22: "\033[35;40m{}\033[0m",     # TOOLS_INFO
-            21: "\033[34;40m{}\033[0m",     # USER_INPUT_INFO
+            21: "\033[34;40m{}\033[0m",     # SYSTEM_INPUT_INFO
+            22: "\033[35;40m{}\033[0m",     # USER_INPUT_INFO
+            23: "\033[36;1;40m{}\033[0m",     # TOOLS_INFO
             30: "\033[33m{}\033[0m",        # WARNING
             40: "\033[31m{}\033[0m",        # ERROR
+            41: "\033[31m;31m{}\033[0m",    # TOOLS_ERROR
             50: "\033[7;31;31m{}\033[0m"    # FATAL/CRITICAL/EXCEPTION
         }
         if not log_level:
