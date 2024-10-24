@@ -20,12 +20,12 @@ class TimeDateToolsManager(BaseToolsManager):
     def _get_current_date(self):
         """Get the current local date as a string."""
         return {"current_date": datetime.strftime(datetime.now(), "%Y-%m-%d")}
-    
+
     def _get_current_date_and_time(self):
         """Get the current local date and time as a string."""
         return {"current_date_and_time": datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")}
 
-    def handle_tool_as_json(self, tool_name, tool_arguments):
+    def handle_tool_as_json(self, tool_name, _):
         # TODO. Convert to dictionary search
         tool_response = {}
         if tool_name == "GetCurrentLocalTime":
