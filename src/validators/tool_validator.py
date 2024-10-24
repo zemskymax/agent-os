@@ -1,4 +1,4 @@
-from ..tools.github_tools import GithubToolsManager
+from tools.github_tools import GithubToolsManager
 
 
 def main():

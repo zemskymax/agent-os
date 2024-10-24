@@ -13,6 +13,7 @@ FILES_TO_EXCLUDE = [".gitignore", "LICENSE"]
 class GithubToolsManager(BaseToolsManager):
     def __init__(self) -> None:
         BaseToolsManager.__init__(self)
+
         github_repo_full_name_parameter = ToolParameter(name="github", description="The github repository name to get the content for.", type="string", required=True)
         github_repo_name_to_content_tool_parameters = ToolParameters(parameters=[github_repo_full_name_parameter])
         github_repo_name_to_content_tool = Tool(name="GithubRepoNameToContentTool", description="Get the content for a given github repository.", parameters=github_repo_name_to_content_tool_parameters)
@@ -63,7 +64,7 @@ class GithubToolsManager(BaseToolsManager):
     def _get_github_repo_content(self, repo_full_name):
         github_repo = self._get_github_repo(repo_full_name)
 
-        github_repo_hierarchy = {"repo name": github_repo.name, "type": "directory", "children": self._get_all_files_in_github_repo(github_repo)}
+        github_repo_hierarchy = {"repo name": github_repo.name, "type": "folder", "children": self._get_all_files_in_github_repo(github_repo)}
 
         return github_repo_hierarchy
 
@@ -74,7 +75,7 @@ class GithubToolsManager(BaseToolsManager):
         for content in contents:
             if content.type == "dir":
                 children = self._get_all_files_in_github_repo(github_repo, content.path)
-                files.append({"name": content.path, "type": "directory", "children": children})
+                files.append({"name": content.path, "type": "folder", "children": children})
             else:
                 if content.path not in FILES_TO_EXCLUDE:
                     try:
@@ -166,11 +167,10 @@ def main():
     # github_repo_full_name = "zemskymax/data-ai-extractor"
     github_repo_full_name = "zemskymax/private_chat"
 
-    githubToolsManager = GithubToolsManager()
-    print(githubToolsManager.get_all_tools())
+    github_tools_manager = GithubToolsManager()
+    print(github_tools_manager.get_all_tools())
 
-    github_repo_hierarchy_as_json = githubToolsManager._get_github_repo_content(github_repo_full_name)
-
+    github_repo_hierarchy_as_json = github_tools_manager._get_github_repo_content(github_repo_full_name)
     print(github_repo_hierarchy_as_json)
 
 

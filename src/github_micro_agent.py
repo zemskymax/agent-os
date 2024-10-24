@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import sys
 from base_micro_agent import BaseMicroAgent
 from model_wrappers.ollama_model_wrapper import OllamaWrapper
 from model_wrappers.vllm_model_wrapper import VllmWrapper
@@ -31,7 +30,6 @@ class GithubMicroAgent(BaseMicroAgent):
         # self.model = OllamaWrapper()
 
 def main():
-    print(sys.path, end="\n\n")
     # prompt = """Check all the python files in the the 'zemskymax/private_chat' git repository. Provide the best documentation (docstring) in english for each class and function found in this repository.
     # Upload the new content to a new branch in the repository.  Use available tools. Important - JSON data must be correct! Do not provide explanations."""
     # prompt = "Receive all the content from the 'zemskymax/private_chat' git repository."

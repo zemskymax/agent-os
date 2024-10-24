@@ -5,12 +5,13 @@ from model_wrappers.vllm_model_wrapper import VllmWrapper
 from tools.time_date_tools import TimeDateToolsManager
 from tools.weather_tools import WeatherToolsManager
 
+
 SYSTEM = "You are a helpful assistant that gives weather updates. Use available tools."
 
 class WeatherMicroAgent(BaseMicroAgent):
     def __init__(self, system):
         tool_managers = [TimeDateToolsManager(), WeatherToolsManager()]
-        BaseMicroAgent.__init__(self, system=SYSTEM, tool_managers=tool_managers)
+        BaseMicroAgent.__init__(self, system=system, tool_managers=tool_managers)
         # self.model = OllamaWrapper()
         self.model = VllmWrapper()
 
